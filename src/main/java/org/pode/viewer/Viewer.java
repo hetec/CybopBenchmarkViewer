@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.pode.handler.BtnHandler;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,11 +30,6 @@ public class Viewer extends Application{
 
     private ObservableList<XYChart.Data<String, Number>> obsData;
 
-    private double javaTime = 0;
-    private double cTime = 0;
-    private double pythonTime = 0;
-    private double cybobTime = 0;
-
     private Label textLabel;
     private Button startScriptBtn;
     private CategoryAxis categoryAxis = new CategoryAxis();
@@ -41,54 +37,7 @@ public class Viewer extends Application{
     private BarChart<String, Number> barChart;
     private XYChart.Series<String, Number> timeSeries;
 
-    private EventHandler<ActionEvent> handler = new EventHandler<ActionEvent>() {
-        public void handle(ActionEvent event) {
-            textLabel.setText("HELLO");
-            Process proc = null;
-            try {
-                proc = Runtime.getRuntime()
-                        .exec("/Users/patrick/Documents/projects/CYBOP-Benchmark/startBenchmark.sh");
-                System.out.println("WAIT ... ");
-                proc.waitFor();
-
-                BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-                String line = "";
-                int lineCounter = 0;
-                while((line = br.readLine()) != null){
-                    System.out.println(line);
-                    if(lineCounter == 0){
-                        System.out.println("java");
-                        javaTime = Double.parseDouble(line);
-                    }
-                    if(lineCounter == 1){
-                        System.out.println("c");
-                        cTime = Double.parseDouble(line);
-                    }
-                    if(lineCounter == 2){
-                        System.out.println("c");
-                        pythonTime = Double.parseDouble(line);
-                    }
-                    lineCounter++;
-                }
-
-                System.out.println("FINISHED:");
-                System.out.println("JAVA: " + javaTime);
-                System.out.println("C++: " + cTime);
-
-                numberAxis.setAutoRanging(true);
-
-                obsData.get(0).setYValue(javaTime);
-                obsData.get(1).setYValue(cTime);
-                obsData.get(2).setYValue(pythonTime);
-                //obsData.get(3).setYValue(cybobTime);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    };
+    private BtnHandler handler = new BtnHandler(obsData, numberAxis, textLabel);
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -103,12 +52,13 @@ public class Viewer extends Application{
         numberAxis.setLabel("Time");
 
         timeSeries = new XYChart.Series<>();
-        XYChart.Data dataJava = new XYChart.Data(JAVA, javaTime);
-        XYChart.Data dataC = new XYChart.Data(C, cTime);
-        XYChart.Data dataPython = new XYChart.Data(PYTHON, pythonTime);
-        XYChart.Data dataCybol = new XYChart.Data(CYBOL, cybobTime);
+        XYChart.Data dataJava = new XYChart.Data(JAVA, 0);
+        XYChart.Data dataC = new XYChart.Data(C, 0);
+        XYChart.Data dataPython = new XYChart.Data(PYTHON, 0);
+        XYChart.Data dataCybol = new XYChart.Data(CYBOL, 0);
         obsData = FXCollections.observableArrayList();
         obsData.addAll(dataJava, dataC, dataPython, dataCybol);
+        handler.setObsData(obsData);
         timeSeries.setData(obsData);
         StackPane root = new StackPane();
         vbox.getChildren().add(textLabel);
