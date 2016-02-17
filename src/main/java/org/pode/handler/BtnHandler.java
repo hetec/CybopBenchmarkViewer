@@ -6,6 +6,7 @@ import javafx.event.EventHandler;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.StackPane;
 
 import java.io.BufferedReader;
@@ -38,8 +39,15 @@ public class BtnHandler implements EventHandler<ActionEvent>{
         w.restart();
         w.setOnSucceeded((e) -> {
             label.textProperty().unbind();
+            installTooltip();
             progressPane.setVisible(false);
         });
+    }
+
+    private void installTooltip(){
+        for(XYChart.Data<String, Number> data : obsData){
+            Tooltip.install(data.getNode(), new Tooltip(data.getYValue() + ""));
+        }
     }
 
 

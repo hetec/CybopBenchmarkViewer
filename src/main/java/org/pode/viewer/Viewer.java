@@ -1,28 +1,31 @@
 package org.pode.viewer;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.chart.*;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.pode.handler.BtnHandler;
-
-import javax.swing.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 /**
  * Created by patrick on 17.02.16.
@@ -46,51 +49,59 @@ public class Viewer extends Application{
     private XYChart.Series<String, Number> memSeries;
     private ProgressBar pb;
     private StackPane progressPane;
-    private BtnHandler handler = null;
+    private BorderPane borderPane;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        final VBox vbox = new VBox();
-        startScriptBtn = new Button();
+        borderPane = new BorderPane();
+        startScriptBtn = new Button("Start Benchmark");
         pb = new ProgressBar();
         textLabel = new Label();
-        startScriptBtn.setText("Run Benchmark");
         barChart = new BarChart<>(categoryAxis, numberAxis);
-        barChart.setTitle("Benchmark Results");
-        barChart.setMaxWidth(700);
-        categoryAxis.setLabel("Languages");
-        numberAxis.setLabel("Time");
 
         initTimeData();
         initMemData();
+        initChart();
+        initProgressBar();
 
+        startScriptBtn.setOnAction(new BtnHandler(obsData, numberAxis, progressPane));
+
+        Scene scene = new Scene(buildUi());
+        primaryStage.setTitle("Cybol Benchmark");
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(500);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private Parent buildUi(){
         StackPane root = new StackPane();
+        borderPane.setTop(progressPane);
+        borderPane.setCenter(barChart);
+        borderPane.setBottom(startScriptBtn);
+        BorderPane.setAlignment(startScriptBtn, Pos.BASELINE_CENTER);
+        BorderPane.setMargin(progressPane, new Insets(0,0,50,0));
+        BorderPane.setAlignment(barChart, Pos.BASELINE_CENTER);
+        BorderPane.setMargin(barChart, new Insets(0,0,50,0));
+        BorderPane.setMargin(startScriptBtn, new Insets(0,0,50,0));
+        barChart.getData().add(timeSeries);
+        root.getChildren().add(borderPane);
+        return root;
+    }
 
-        pb.setVisible(true);
+    private void initProgressBar(){
         pb.setMinWidth(800);
         pb.setMinHeight(30);
         progressPane = new StackPane();
         progressPane.getChildren().addAll(pb, textLabel);
         progressPane.setVisible(false);
+    }
 
-        handler = new BtnHandler(obsData, numberAxis, progressPane);
-        startScriptBtn.setOnAction(handler);
-
-        vbox.getChildren().add(progressPane);
-        vbox.getChildren().add(startScriptBtn);
-        vbox.getChildren().add(barChart);
-        vbox.setAlignment(Pos.CENTER);
-        vbox.setMargin(startScriptBtn, new Insets(0,0,40,0));
-        barChart.getData().add(timeSeries);
-
-        root.getChildren().add(vbox);
-
-        Scene scene = new Scene(root);
-        primaryStage.setTitle("TEST");
-        primaryStage.setWidth(800);
-        primaryStage.setHeight(500);
-        primaryStage.setScene(scene);
-        primaryStage.show();
+    private void initChart(){
+        barChart.setTitle("Benchmark Results");
+        barChart.setMaxWidth(700);
+        categoryAxis.setLabel("Languages");
+        numberAxis.setLabel("Time in ms");
     }
 
     private void initTimeData(){

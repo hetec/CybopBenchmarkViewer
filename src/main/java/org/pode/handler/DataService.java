@@ -5,7 +5,7 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,7 +23,6 @@ public class DataService extends Service<Void> {
 
     private ObservableList<XYChart.Data<String, Number>> obsData;
     private NumberAxis axis;
-    private Label stateLabel;
 
     public DataService(ObservableList<XYChart.Data<String, Number>> obsData,
                       NumberAxis axis){
@@ -35,7 +34,7 @@ public class DataService extends Service<Void> {
         obsData.get(0).setYValue(javaTime);
         obsData.get(1).setYValue(cTime);
         obsData.get(2).setYValue(pythonTime);
-        //obsData.get(3).setYValue(cybobTime);
+        obsData.get(3).setYValue(cybobTime);
     }
 
     private void readTimes(Process proc) throws IOException {
@@ -81,16 +80,16 @@ public class DataService extends Service<Void> {
             @Override
             public Void call() {
                 System.out.println("Benchmark is running ...");
-                updateMessage("Benchmark started");
+                updateMessage("Benchmark is running ...");
                 try {
                     readTimes(runScript());
                     axis.setAutoRanging(true);
                     setObsData();
                     updateMessage("Benchmark finished");
                 } catch (IOException e) {
-                    stateLabel.setText(e.getMessage());
+                    updateMessage(e.getMessage());
                 } catch (InterruptedException e) {
-                    stateLabel.setText(e.getMessage());
+                    updateMessage(e.getMessage());
                 }
                 return null;
             }
