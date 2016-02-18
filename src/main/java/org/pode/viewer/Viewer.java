@@ -61,7 +61,7 @@ public class Viewer extends Application{
 
         initTimeData();
         initMemData();
-        initChart();
+        initChart(timeSeries, memSeries);
         initProgressBar();
 
         startScriptBtn.setOnAction(new BtnHandler(obsData, numberAxis, progressPane));
@@ -84,7 +84,6 @@ public class Viewer extends Application{
         BorderPane.setAlignment(barChart, Pos.BASELINE_CENTER);
         BorderPane.setMargin(barChart, new Insets(0,0,50,0));
         BorderPane.setMargin(startScriptBtn, new Insets(0,0,50,0));
-        barChart.getData().add(timeSeries);
         root.getChildren().add(borderPane);
         return root;
     }
@@ -97,11 +96,14 @@ public class Viewer extends Application{
         progressPane.setVisible(false);
     }
 
-    private void initChart(){
+    private void initChart(XYChart.Series<String, Number> ...series){
         barChart.setTitle("Benchmark Results");
         barChart.setMaxWidth(700);
         categoryAxis.setLabel("Languages");
         numberAxis.setLabel("Time in ms");
+        for(XYChart.Series<String, Number> s : series){
+            barChart.getData().add(s);
+        }
     }
 
     private void initTimeData(){
@@ -110,22 +112,16 @@ public class Viewer extends Application{
     }
 
     private void initMemData(){
-        memSeries = new XYChart.Series<>();
-        XYChart.Data dataMemJava = new XYChart.Data(JAVA, 0);
-        XYChart.Data dataMemC = new XYChart.Data(C, 0);
-        XYChart.Data dataMemPython = new XYChart.Data(PYTHON, 0);
-        XYChart.Data dataMemCybol = new XYChart.Data(CYBOL, 0);
-        obsMemData = FXCollections.observableArrayList();
-        obsMemData.addAll(dataMemJava, dataMemC, dataMemPython, dataMemCybol);
-        timeSeries.setData(obsData);
+        memSeries = buildSeries();
+        obsMemData = memSeries.getData();
     }
 
     private XYChart.Series<String, Number> buildSeries(){
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        XYChart.Data dataJava = new XYChart.Data(JAVA, 0);
-        XYChart.Data dataC = new XYChart.Data(C, 0);
-        XYChart.Data dataPython = new XYChart.Data(PYTHON, 0);
-        XYChart.Data dataCybol = new XYChart.Data(CYBOL, 0);
+        XYChart.Data<String, Number> dataJava = new XYChart.Data<>(JAVA, 0);
+        XYChart.Data<String, Number> dataC = new XYChart.Data<>(C, 0);
+        XYChart.Data<String, Number> dataPython = new XYChart.Data<>(PYTHON, 0);
+        XYChart.Data<String, Number> dataCybol = new XYChart.Data<>(CYBOL, 0);
         series.setData(observeData(dataJava,dataC,dataPython,dataCybol));
         return series;
     }
