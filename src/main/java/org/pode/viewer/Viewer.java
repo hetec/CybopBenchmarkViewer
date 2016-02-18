@@ -1,15 +1,10 @@
 package org.pode.viewer;
 
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
@@ -19,11 +14,9 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.Tooltip;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.pode.handler.BtnHandler;
 
@@ -42,9 +35,12 @@ public class Viewer extends Application{
 
     private Label textLabel;
     private Button startScriptBtn;
-    private CategoryAxis categoryAxis = new CategoryAxis();
-    private NumberAxis numberAxis = new NumberAxis(0, 10 , 10);
-    private BarChart<String, Number> barChart;
+    private CategoryAxis categoryAxisTime = new CategoryAxis();
+    private NumberAxis numberAxisTime = new NumberAxis(0, 10 , 10);
+    private CategoryAxis categoryAxisMem = new CategoryAxis();
+    private NumberAxis numberAxisMem = new NumberAxis(0, 10 , 10);
+    private BarChart<String, Number> barChartTime;
+    private BarChart<String, Number> barChartMem;
     private XYChart.Series<String, Number> timeSeries;
     private XYChart.Series<String, Number> memSeries;
     private ProgressBar pb;
@@ -53,23 +49,32 @@ public class Viewer extends Application{
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        primaryStage.setTitle("Cybol Benchmark");
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(500);
+
         borderPane = new BorderPane();
         startScriptBtn = new Button("Start Benchmark");
         pb = new ProgressBar();
         textLabel = new Label();
-        barChart = new BarChart<>(categoryAxis, numberAxis);
+        barChartTime = new BarChart<>(categoryAxisTime, numberAxisTime);
+        barChartMem = new BarChart<>(categoryAxisMem, numberAxisMem);
 
         initTimeData();
         initMemData();
-        initChart(timeSeries, memSeries);
-        initProgressBar();
+        initTimeChart(timeSeries);
+        initMemChart(memSeries);
+        initProgressBar(primaryStage);
 
-        startScriptBtn.setOnAction(new BtnHandler(obsData, numberAxis, progressPane));
+        startScriptBtn.setOnAction(
+                new BtnHandler(
+                        obsData,
+                        obsMemData,
+                        numberAxisTime,
+                        numberAxisMem,
+                        progressPane));
 
         Scene scene = new Scene(buildUi());
-        primaryStage.setTitle("Cybol Benchmark");
-        primaryStage.setWidth(800);
-        primaryStage.setHeight(500);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -77,42 +82,67 @@ public class Viewer extends Application{
     private Parent buildUi(){
         StackPane root = new StackPane();
         borderPane.setTop(progressPane);
-        borderPane.setCenter(barChart);
+        HBox charts = new HBox();
+        charts.setAlignment(Pos.BASELINE_CENTER);
+        charts.getChildren().addAll(barChartTime, barChartMem);
+        HBox.setMargin(barChartTime, new Insets(10,10,10,10));
+        HBox.setMargin(barChartMem, new Insets(10,10,10,10));
+        borderPane.setCenter(charts);
         borderPane.setBottom(startScriptBtn);
         BorderPane.setAlignment(startScriptBtn, Pos.BASELINE_CENTER);
-        BorderPane.setMargin(progressPane, new Insets(0,0,50,0));
-        BorderPane.setAlignment(barChart, Pos.BASELINE_CENTER);
-        BorderPane.setMargin(barChart, new Insets(0,0,50,0));
-        BorderPane.setMargin(startScriptBtn, new Insets(0,0,50,0));
+        BorderPane.setMargin(progressPane, new Insets(0,0,20,0));
+        BorderPane.setMargin(charts, new Insets(0,0,70,0));
+        BorderPane.setMargin(startScriptBtn, new Insets(0,0,20,0));
         root.getChildren().add(borderPane);
         return root;
     }
 
-    private void initProgressBar(){
-        pb.setMinWidth(800);
+    private void initProgressBar(Stage primaryStage){
         pb.setMinHeight(30);
+        pb.prefWidthProperty().bind(primaryStage.widthProperty());
         progressPane = new StackPane();
         progressPane.getChildren().addAll(pb, textLabel);
         progressPane.setVisible(false);
+
     }
 
-    private void initChart(XYChart.Series<String, Number> ...series){
-        barChart.setTitle("Benchmark Results");
-        barChart.setMaxWidth(700);
-        categoryAxis.setLabel("Languages");
-        numberAxis.setLabel("Time in ms");
-        for(XYChart.Series<String, Number> s : series){
-            barChart.getData().add(s);
-        }
+    private void initChart(
+            BarChart<String, Number> barChart,
+            XYChart.Series<String, Number> series,
+            String title){
+        barChart.setTitle(title);
+        barChart.getData().add(series);
+        barChart.setLegendVisible(false);
+    }
+
+    private void initAxis(
+            NumberAxis numberAxis,
+            CategoryAxis catAxis,
+            String numberAxisTitle,
+            String catAxisTitle){
+        numberAxis.setLabel(numberAxisTitle);
+        catAxis.setLabel(catAxisTitle);
+    }
+
+    private void initTimeChart(XYChart.Series<String, Number> series){
+        initChart(barChartTime, timeSeries, "Time");
+        initAxis(numberAxisTime, categoryAxisTime, "Time in s", "Languages");
+    }
+
+    private void initMemChart(XYChart.Series<String, Number> series){
+        initChart(barChartMem, memSeries, "Memory");
+        initAxis(numberAxisMem, categoryAxisMem, "Memory in MB", "Languages");
     }
 
     private void initTimeData(){
         timeSeries = buildSeries();
+        timeSeries.setName("Time");
         obsData = timeSeries.getData();
     }
 
     private void initMemData(){
         memSeries = buildSeries();
+        memSeries.setName("Memory");
         obsMemData = memSeries.getData();
     }
 
@@ -135,5 +165,6 @@ public class Viewer extends Application{
         obs.addAll(dataJava, dataC, dataPython, dataCybol);
         return obs;
     }
+
 }
 

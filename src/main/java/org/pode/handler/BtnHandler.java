@@ -3,15 +3,12 @@ package org.pode.handler;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.StackPane;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 /**
  * Created by patrick on 17.02.16.
@@ -19,21 +16,27 @@ import java.io.InputStreamReader;
 public class BtnHandler implements EventHandler<ActionEvent>{
 
     private ObservableList<XYChart.Data<String, Number>> obsData;
-    private NumberAxis axis;
+    private ObservableList<XYChart.Data<String, Number>> obsMemData;
+    private NumberAxis axisTime;
+    private NumberAxis axisMem;
     private StackPane progressPane;
 
     public BtnHandler(ObservableList<XYChart.Data<String, Number>> obsData,
-                      NumberAxis axis,
+                      ObservableList<XYChart.Data<String, Number>> obsMemData,
+                      NumberAxis axisTime,
+                      NumberAxis axisMem,
                       StackPane progressPane){
         this.obsData = obsData;
-        this.axis = axis;
+        this.obsMemData = obsMemData;
+        this.axisTime = axisTime;
+        this.axisMem = axisMem;
         this.progressPane = progressPane;
     }
 
     @Override
     public void handle(ActionEvent event) {
         this.progressPane.setVisible(true);
-        DataService w = new DataService(this.obsData,this.axis);
+        DataService w = new DataService(this.obsData, this.obsMemData, this.axisTime, this.axisMem);
         Label label = (Label) progressPane.getChildren().get(1);
         label.textProperty().bind(w.messageProperty());
         w.restart();
@@ -47,7 +50,16 @@ public class BtnHandler implements EventHandler<ActionEvent>{
     private void installTooltip(){
         for(XYChart.Data<String, Number> data : obsData){
             Tooltip.install(data.getNode(), new Tooltip(data.getYValue() + ""));
+            setColor(data.getNode());
         }
+        for(XYChart.Data<String, Number> data : obsMemData){
+            Tooltip.install(data.getNode(), new Tooltip(data.getYValue() + ""));
+            setColor(data.getNode());
+        }
+    }
+
+    private void setColor(Node node){
+        node.setStyle("-fx-bar-fill:dodgerblue");
     }
 
 

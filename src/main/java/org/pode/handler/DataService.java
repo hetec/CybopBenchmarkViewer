@@ -5,8 +5,6 @@ import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Tooltip;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -21,13 +19,28 @@ public class DataService extends Service<Void> {
     private double pythonTime = 0;
     private double cybobTime = 0;
 
+    private double javaMem = 0;
+    private double cMem = 0;
+    private double pythonMem = 0;
+    private double cybobMem = 0;
+
     private ObservableList<XYChart.Data<String, Number>> obsData;
-    private NumberAxis axis;
+    private ObservableList<XYChart.Data<String, Number>> obsMemData;
+    private NumberAxis axisTime;
+    private NumberAxis axisMem;
 
     public DataService(ObservableList<XYChart.Data<String, Number>> obsData,
-                      NumberAxis axis){
+                       ObservableList<XYChart.Data<String, Number>> obsMemData,
+                       NumberAxis axisTime,
+                       NumberAxis axisMem){
         this.obsData = obsData;
-        this.axis = axis;
+        this.obsMemData = obsMemData;
+        this.axisTime = axisTime;
+        this.axisMem = axisMem;
+    }
+
+    private double toMB(double bytes){
+        return bytes/1000/1000;
     }
 
     private void setObsData(){
@@ -35,6 +48,13 @@ public class DataService extends Service<Void> {
         obsData.get(1).setYValue(cTime);
         obsData.get(2).setYValue(pythonTime);
         obsData.get(3).setYValue(cybobTime);
+    }
+
+    private void setObsMemData(){
+        obsMemData.get(0).setYValue(toMB(javaMem));
+        obsMemData.get(1).setYValue(toMB(cMem));
+        obsMemData.get(2).setYValue(toMB(pythonMem));
+        obsMemData.get(3).setYValue(toMB(cybobMem));
     }
 
     private void readTimes(Process proc) throws IOException {
@@ -59,9 +79,24 @@ public class DataService extends Service<Void> {
                 System.out.println("cybol");
                 cybobTime = Double.parseDouble(line);
             }
+            if(lineCounter == 4){
+                System.out.println("java");
+                javaMem = Double.parseDouble(line);
+            }
+            if(lineCounter == 5){
+                System.out.println("c");
+                cMem = Double.parseDouble(line);
+            }
+            if(lineCounter == 6){
+                System.out.println("python");
+                pythonMem = Double.parseDouble(line);
+            }
+            if(lineCounter == 7){
+                System.out.println("cybol");
+                cybobMem = Double.parseDouble(line);
+            }
             lineCounter++;
         }
-
         System.out.println("FINISHED");
     }
 
@@ -83,8 +118,10 @@ public class DataService extends Service<Void> {
                 updateMessage("Benchmark is running ...");
                 try {
                     readTimes(runScript());
-                    axis.setAutoRanging(true);
+                    axisTime.setAutoRanging(true);
+                    axisMem.setAutoRanging(true);
                     setObsData();
+                    setObsMemData();
                     updateMessage("Benchmark finished");
                 } catch (IOException e) {
                     updateMessage(e.getMessage());
