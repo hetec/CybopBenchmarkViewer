@@ -1,4 +1,6 @@
-package org.pode.viewer;
+package main.viewer;
+
+import java.util.Map;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -18,12 +20,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import org.pode.handler.BtnHandler;
+import main.handler.BtnHandler;
 
 /**
  * Created by patrick on 17.02.16.
  */
-public class Viewer extends Application{
+public class Viewer extends Application {
 
     private final static String PYTHON = "Python";
     private final static String JAVA = "Java";
@@ -46,10 +48,42 @@ public class Viewer extends Application{
     private ProgressBar pb;
     private StackPane progressPane;
     private BorderPane borderPane;
+    
+    private String scriptPath;
+    private String programPath;
+    private int runTimes;
 
     @Override
+    public void init() throws Exception {
+    	super.init();
+    	
+    	scriptPath = "";
+    	programPath = "";
+    	runTimes = 0;
+    	
+    	Parameters parameters = getParameters();
+    	Map<String, String> namedParameters = parameters.getNamed();
+
+    	for (Map.Entry<String, String> entry : namedParameters.entrySet()) {
+    		if ("scriptpath".equals(entry.getKey())) {
+    			System.out.println(entry.getKey() + " : " + entry.getValue());
+    			scriptPath = entry.getValue();
+    		}
+    		if ("programpath".equals(entry.getKey())) {
+    			System.out.println(entry.getKey() + " : " + entry.getValue());
+    			programPath = entry.getValue();
+    		}
+    		if ("runtimes".equals(entry.getKey())) {
+    			System.out.println(entry.getKey() + " : " + entry.getValue());
+    			runTimes = Integer.valueOf(entry.getValue());
+    		}
+    	}
+    }
+    
+    @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("Cybol Benchmark");
+    	 	
+        primaryStage.setTitle("Cybop Benchmark");
         primaryStage.setWidth(800);
         primaryStage.setHeight(500);
 
@@ -72,14 +106,18 @@ public class Viewer extends Application{
                         obsMemData,
                         numberAxisTime,
                         numberAxisMem,
-                        progressPane));
+                        progressPane,
+                        scriptPath,
+                        programPath,
+                        runTimes)
+                );
 
         Scene scene = new Scene(buildUi());
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
-    private Parent buildUi(){
+    private Parent buildUi() {
         StackPane root = new StackPane();
         borderPane.setTop(progressPane);
         HBox charts = new HBox();
@@ -97,7 +135,7 @@ public class Viewer extends Application{
         return root;
     }
 
-    private void initProgressBar(Stage primaryStage){
+    private void initProgressBar(Stage primaryStage) {
         pb.setMinHeight(30);
         pb.prefWidthProperty().bind(primaryStage.widthProperty());
         progressPane = new StackPane();
@@ -106,47 +144,47 @@ public class Viewer extends Application{
 
     }
 
-    private void initChart(
+    private void initChart (
             BarChart<String, Number> barChart,
             XYChart.Series<String, Number> series,
-            String title){
+            String title) {
         barChart.setTitle(title);
         barChart.getData().add(series);
         barChart.setLegendVisible(false);
     }
 
-    private void initAxis(
+    private void initAxis (
             NumberAxis numberAxis,
             CategoryAxis catAxis,
             String numberAxisTitle,
-            String catAxisTitle){
+            String catAxisTitle) {
         numberAxis.setLabel(numberAxisTitle);
         catAxis.setLabel(catAxisTitle);
     }
 
-    private void initTimeChart(XYChart.Series<String, Number> series){
+    private void initTimeChart(XYChart.Series<String, Number> series) {
         initChart(barChartTime, timeSeries, "Time");
         initAxis(numberAxisTime, categoryAxisTime, "Time in s", "Languages");
     }
 
-    private void initMemChart(XYChart.Series<String, Number> series){
+    private void initMemChart(XYChart.Series<String, Number> series) {
         initChart(barChartMem, memSeries, "Memory");
         initAxis(numberAxisMem, categoryAxisMem, "Memory in MB", "Languages");
     }
 
-    private void initTimeData(){
+    private void initTimeData() {
         timeSeries = buildSeries();
         timeSeries.setName("Time");
         obsData = timeSeries.getData();
     }
 
-    private void initMemData(){
+    private void initMemData() {
         memSeries = buildSeries();
         memSeries.setName("Memory");
         obsMemData = memSeries.getData();
     }
 
-    private XYChart.Series<String, Number> buildSeries(){
+    private XYChart.Series<String, Number> buildSeries() {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         XYChart.Data<String, Number> dataJava = new XYChart.Data<>(JAVA, 0);
         XYChart.Data<String, Number> dataC = new XYChart.Data<>(C, 0);
@@ -156,15 +194,19 @@ public class Viewer extends Application{
         return series;
     }
 
-    private ObservableList<XYChart.Data<String, Number>> observeData(
+    private ObservableList<XYChart.Data<String, Number>> observeData (
             XYChart.Data dataJava,
             XYChart.Data dataC,
             XYChart.Data dataPython,
-            XYChart.Data dataCybol){
+            XYChart.Data dataCybol) {
         ObservableList<XYChart.Data<String, Number>> obs = FXCollections.observableArrayList();
         obs.addAll(dataJava, dataC, dataPython, dataCybol);
         return obs;
     }
-
+    
+    
+    public static void main(String[] args) {
+		Application.launch(args);
+	}
 }
 
