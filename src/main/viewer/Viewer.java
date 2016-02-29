@@ -19,6 +19,9 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import main.handler.BtnHandler;
 
@@ -46,7 +49,6 @@ public class Viewer extends Application {
     private XYChart.Series<String, Number> timeSeries;
     private XYChart.Series<String, Number> memSeries;
     private ProgressBar pb;
-    private StackPane progressPane;
     private BorderPane borderPane;
     
     private String scriptPath;
@@ -91,6 +93,7 @@ public class Viewer extends Application {
         startScriptBtn = new Button("Start Benchmark");
         pb = new ProgressBar();
         textLabel = new Label();
+        textLabel.setFont(Font.font("Verdana", FontWeight.EXTRA_BOLD, 20));
         barChartTime = new BarChart<>(categoryAxisTime, numberAxisTime);
         barChartMem = new BarChart<>(categoryAxisMem, numberAxisMem);
 
@@ -106,7 +109,8 @@ public class Viewer extends Application {
                         obsMemData,
                         numberAxisTime,
                         numberAxisMem,
-                        progressPane,
+                        pb,
+                        textLabel,
                         scriptPath,
                         programPath,
                         runTimes)
@@ -119,29 +123,39 @@ public class Viewer extends Application {
 
     private Parent buildUi() {
         StackPane root = new StackPane();
-        borderPane.setTop(progressPane);
+        
+        VBox vbox = new VBox();
+        vbox.setAlignment(Pos.BASELINE_CENTER);
+        vbox.getChildren().add(pb);
+        vbox.getChildren().add(textLabel);
+         
         HBox charts = new HBox();
         charts.setAlignment(Pos.BASELINE_CENTER);
         charts.getChildren().addAll(barChartTime, barChartMem);
+        
         HBox.setMargin(barChartTime, new Insets(10,10,10,10));
         HBox.setMargin(barChartMem, new Insets(10,10,10,10));
+        
+        borderPane.setTop(vbox);
         borderPane.setCenter(charts);
         borderPane.setBottom(startScriptBtn);
+        
         BorderPane.setAlignment(startScriptBtn, Pos.BASELINE_CENTER);
-        BorderPane.setMargin(progressPane, new Insets(0,0,20,0));
-        BorderPane.setMargin(charts, new Insets(0,0,70,0));
+        
+        BorderPane.setMargin(pb, new Insets(0,0,20,0));
+        BorderPane.setMargin(textLabel, new Insets(50, 0, 50, 0));
+        BorderPane.setMargin(charts, new Insets(30,0,40,0));
         BorderPane.setMargin(startScriptBtn, new Insets(0,0,20,0));
+        
         root.getChildren().add(borderPane);
+        
         return root;
     }
 
     private void initProgressBar(Stage primaryStage) {
         pb.setMinHeight(30);
         pb.prefWidthProperty().bind(primaryStage.widthProperty());
-        progressPane = new StackPane();
-        progressPane.getChildren().addAll(pb, textLabel);
-        progressPane.setVisible(false);
-
+        pb.setVisible(false);
     }
 
     private void initChart (
@@ -190,7 +204,7 @@ public class Viewer extends Application {
         XYChart.Data<String, Number> dataC = new XYChart.Data<>(C, 0);
         XYChart.Data<String, Number> dataPython = new XYChart.Data<>(PYTHON, 0);
         XYChart.Data<String, Number> dataCybol = new XYChart.Data<>(CYBOL, 0);
-        series.setData(observeData(dataJava,dataC,dataPython,dataCybol));
+        series.setData(observeData(dataPython,dataJava,dataC,dataCybol));
         return series;
     }
 

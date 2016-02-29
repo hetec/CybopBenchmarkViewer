@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.StackPane;
 
@@ -19,7 +20,8 @@ public class BtnHandler implements EventHandler<ActionEvent> {
     private ObservableList<XYChart.Data<String, Number>> obsMemData;
     private NumberAxis axisTime;
     private NumberAxis axisMem;
-    private StackPane progressPane;
+    private ProgressBar pb;
+    private Label textLabel;
     
     private String scriptPath;
     private String programPath;
@@ -29,7 +31,8 @@ public class BtnHandler implements EventHandler<ActionEvent> {
                       ObservableList<XYChart.Data<String, Number>> obsMemData,
                       NumberAxis axisTime,
                       NumberAxis axisMem,
-                      StackPane progressPane,
+                      ProgressBar pb,
+                      Label textLabel,
                       String scriptPath,
                       String programPath,
                       int runTimes) {
@@ -37,7 +40,8 @@ public class BtnHandler implements EventHandler<ActionEvent> {
         this.obsMemData = obsMemData;
         this.axisTime = axisTime;
         this.axisMem = axisMem;
-        this.progressPane = progressPane;
+        this.pb = pb;
+        this.textLabel = textLabel;
         this.scriptPath = scriptPath;
         this.programPath = programPath;
         this.runTimes = runTimes;
@@ -45,25 +49,27 @@ public class BtnHandler implements EventHandler<ActionEvent> {
 
     @Override
     public void handle(ActionEvent event) {
-        this.progressPane.setVisible(true);
+    	this.pb.setVisible(true);
         DataService w = new DataService(this.obsData, this.obsMemData, this.axisTime, this.axisMem, this.scriptPath, this.programPath, this.runTimes);
-        Label label = (Label) progressPane.getChildren().get(1);
-        label.textProperty().bind(w.messageProperty());
+        this.textLabel.textProperty().bind(w.messageProperty());
         w.restart();
         w.setOnSucceeded((e) -> {
-            label.textProperty().unbind();
+            this.textLabel.textProperty().unbind();
             installTooltip();
-            progressPane.setVisible(false);
+            this.pb.setVisible(false);
         });
+        
     }
 
     private void installTooltip() {
         for (XYChart.Data<String, Number> data : obsData) {
-            Tooltip.install(data.getNode(), new Tooltip(data.getYValue() + ""));
+        	String formattedData = String.format("%.2f Sec", data.getYValue());
+            Tooltip.install(data.getNode(), new Tooltip(formattedData));
             setColor(data.getNode());
         }
         for (XYChart.Data<String, Number> data : obsMemData) {
-            Tooltip.install(data.getNode(), new Tooltip(data.getYValue() + ""));
+        	Double dataValueByte = (data.getYValue().doubleValue()) * 1000 * 1000;
+            Tooltip.install(data.getNode(), new Tooltip(dataValueByte + " Byte"));
             setColor(data.getNode());
         }
     }

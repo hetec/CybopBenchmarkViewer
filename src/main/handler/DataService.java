@@ -53,21 +53,21 @@ public class DataService extends Service<Void> {
         return bytes/1000/1000;
     }
 
-    private void setObsData() {
+    protected void setObsData() {
         obsData.get(0).setYValue(javaTime);
         obsData.get(1).setYValue(cTime);
         obsData.get(2).setYValue(pythonTime);
         obsData.get(3).setYValue(cybobTime);
     }
 
-    private void setObsMemData() {
+    protected void setObsMemData() {
         obsMemData.get(0).setYValue(toMB(javaMem));
         obsMemData.get(1).setYValue(toMB(cMem));
         obsMemData.get(2).setYValue(toMB(pythonMem));
         obsMemData.get(3).setYValue(toMB(cybobMem));
     }
 
-    private void readTimes(Process proc) throws IOException {
+    protected void readTimes(Process proc) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
         String line = "";
         int lineCounter = 0;
@@ -104,6 +104,7 @@ public class DataService extends Service<Void> {
             if (lineCounter == (7 + runTimes)) {
                 System.out.println("cybop");
                 cybobMem = Double.parseDouble(line);
+                
             }
             lineCounter++;
         }
@@ -118,7 +119,7 @@ public class DataService extends Service<Void> {
         return proc;
     }
 
-    @Override
+	@Override
     protected Task<Void> createTask() {
         return new Task<Void>() {
             @Override
