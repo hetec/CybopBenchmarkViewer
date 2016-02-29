@@ -54,16 +54,16 @@ public class DataService extends Service<Void> {
     }
 
     protected void setObsData() {
-        obsData.get(0).setYValue(javaTime);
-        obsData.get(1).setYValue(cTime);
-        obsData.get(2).setYValue(pythonTime);
+        obsData.get(0).setYValue(pythonTime);
+    	obsData.get(1).setYValue(javaTime);
+        obsData.get(2).setYValue(cTime);
         obsData.get(3).setYValue(cybobTime);
     }
 
     protected void setObsMemData() {
-        obsMemData.get(0).setYValue(toMB(javaMem));
-        obsMemData.get(1).setYValue(toMB(cMem));
-        obsMemData.get(2).setYValue(toMB(pythonMem));
+        obsMemData.get(0).setYValue(toMB(pythonMem));
+    	obsMemData.get(1).setYValue(toMB(javaMem));
+        obsMemData.get(2).setYValue(toMB(cMem));
         obsMemData.get(3).setYValue(toMB(cybobMem));
     }
 
